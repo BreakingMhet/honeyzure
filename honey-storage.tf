@@ -70,10 +70,6 @@ resource "azurerm_monitor_diagnostic_setting" "ds_blob" {
 
 # Action Group (it specifies the receiver of the alert)
 
-variable "destination_email" {
-  description = "Destination email for the alert"
-}
-
 resource "azurerm_monitor_action_group" "alert_email_action" {
   name                = "EmailAction"
   resource_group_name = azurerm_resource_group.rg_honey_test.name
