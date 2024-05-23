@@ -1,23 +1,3 @@
-resource "random_integer" "random_int" {
-  min = 1000
-  max = 9999
-}
-
-resource "azurerm_resource_group" "rg_honey_test" {
-  name     = "honey_test"
-  location = "West Europe"
-}
-
-# Azure Analytics Workspace 
-
-resource "azurerm_log_analytics_workspace" "monitor" {
-  name                = "log-analytics-workspace"
-  resource_group_name = azurerm_resource_group.rg_honey_test.name
-  location            = azurerm_resource_group.rg_honey_test.location
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
-}
-
 # Azure Storage Account
 
 resource "azurerm_storage_account" "sa_customers_data" {
@@ -26,6 +6,7 @@ resource "azurerm_storage_account" "sa_customers_data" {
   location                 = azurerm_resource_group.rg_honey_test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
+  depends_on = [azurerm_resource_group.rg_honey_test]
 }
 
 # Azure Container
@@ -34,6 +15,7 @@ resource "azurerm_storage_container" "cnt_customers_data" {
   name                  = "content"
   storage_account_name  = azurerm_storage_account.sa_customers_data.name
   container_access_type = "private"
+  depends_on = [azurerm_storage_account.sa_customers_data]
 }
 
 # Azure Blob
@@ -45,6 +27,7 @@ resource "azurerm_storage_blob" "users_data" {
   type                   = "Block"
   access_tier            = "Cool"
   source                 = "users_data.csv"
+  depends_on = [azurerm_storage_container.cnt_customers_data]
 }
 
 # Monitor Diagnostic Settings for the blob (this enables loggin on the blob)
@@ -66,6 +49,7 @@ resource "azurerm_monitor_diagnostic_setting" "ds_blob" {
     category = "StorageDelete"
     enabled  = true
   }
+  depends_on = [azurerm_storage_account.sa_customers_data]
 }
 
 # Action Group (it specifies the receiver of the alert)
@@ -79,8 +63,10 @@ resource "azurerm_monitor_action_group" "alert_email_action" {
     email_address           = var.destination_email
     use_common_alert_schema = true
   }
+  depends_on = [azurerm_resource_group.rg_honey_test, azurerm_log_analytics_workspace.monitor]
 }
 
+# Alert Rule
 
 resource "azurerm_monitor_scheduled_query_rules_alert" "alert_blob" {
   name                = "alert_blob"
@@ -106,4 +92,5 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "alert_blob" {
     operator  = "GreaterThan"
     threshold = 0
   }
+  depends_on = [azurerm_monitor_action_group.alert_email_action]
 }

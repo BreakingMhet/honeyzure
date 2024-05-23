@@ -15,3 +15,25 @@ provider "azurerm" {
 }
 
 provider "random" {}
+
+resource "random_integer" "random_int" {
+  min = 1000
+  max = 9999
+}
+
+
+resource "azurerm_resource_group" "rg_honey_test" {
+  name     = "honey_test"
+  location = "Italy North"
+}
+
+# Azure Analytics Workspace 
+
+resource "azurerm_log_analytics_workspace" "monitor" {
+  name                = "log-analytics-workspace"
+  resource_group_name = azurerm_resource_group.rg_honey_test.name
+  location            = azurerm_resource_group.rg_honey_test.location
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+  depends_on = [azurerm_resource_group.rg_honey_test]
+}
