@@ -6,7 +6,7 @@ resource "azurerm_storage_account" "sa_customers_data" {
   location                 = azurerm_resource_group.rg_honey_test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  depends_on = [azurerm_resource_group.rg_honey_test]
+  depends_on               = [azurerm_resource_group.rg_honey_test]
 }
 
 # Azure Container
@@ -15,7 +15,7 @@ resource "azurerm_storage_container" "cnt_customers_data" {
   name                  = "content"
   storage_account_name  = azurerm_storage_account.sa_customers_data.name
   container_access_type = "private"
-  depends_on = [azurerm_storage_account.sa_customers_data]
+  depends_on            = [azurerm_storage_account.sa_customers_data]
 }
 
 # Azure Blob
@@ -27,7 +27,7 @@ resource "azurerm_storage_blob" "users_data" {
   type                   = "Block"
   access_tier            = "Cool"
   source                 = "users_data.csv"
-  depends_on = [azurerm_storage_container.cnt_customers_data]
+  depends_on             = [azurerm_storage_container.cnt_customers_data]
 }
 
 # Monitor Diagnostic Settings for the blob (this enables loggin on the blob)

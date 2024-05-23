@@ -35,5 +35,5 @@ resource "azurerm_log_analytics_workspace" "monitor" {
   location            = azurerm_resource_group.rg_honey_test.location
   sku                 = "PerGB2018"
   retention_in_days   = 30
-  depends_on = [azurerm_resource_group.rg_honey_test]
+  depends_on          = [azurerm_resource_group.rg_honey_test]
 }
