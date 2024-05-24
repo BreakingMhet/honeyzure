@@ -45,5 +45,9 @@ resource "azurerm_monitor_diagnostic_setting" "ds_cosmos" {
     category = "DataPlaneRequests"
     enabled  = true
   }
+  log {
+    category = "ControlPlaneRequests"
+    enabled  = true
+  }
   depends_on = [azurerm_cosmosdb_account.cdb_account]
 }
