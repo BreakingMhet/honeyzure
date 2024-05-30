@@ -22,9 +22,45 @@ resource "azurerm_mssql_server" "sqlsrv_credit_cards" {
   depends_on                    = [azurerm_resource_group.rg_honey_test]
 }
 
+resource "azurerm_mssql_firewall_rule" "sqlsrv_firewall_rule" {
+  name             = "AllowAllWindowsAzureIps"
+  server_id        = azurerm_mssql_server.sqlsrv_credit_cards.id
+  start_ip_address = "0.0.0.0"
+  end_ip_address   = "255.255.255.255"
+  depends_on       = [azurerm_mssql_server.sqlsrv_credit_cards]
+}
+
 resource "azurerm_mssql_database" "sqldb_credit_cards" {
-  name                = "CreditCardsData"
-  server_id           = azurerm_mssql_server.sqlsrv_credit_cards.id
-  sku_name            = "Basic"
-  depends_on          = [azurerm_mssql_server.sqlsrv_credit_cards]
+  name      = "CreditCardsData"
+  server_id = azurerm_mssql_server.sqlsrv_credit_cards.id
+  sku_name  = "Basic"
+
+  storage_account_type = "Local"
+  depends_on           = [azurerm_mssql_server.sqlsrv_credit_cards]
+}
+
+
+resource "azurerm_monitor_diagnostic_setting" "ds_sqldb" {
+  name                           = "ds_sqldb"
+  target_resource_id             = "${azurerm_mssql_server.sqlsrv_credit_cards.id}/databases/master"
+  log_analytics_workspace_id     = azurerm_log_analytics_workspace.monitor.id
+
+  log {
+    category = "SQLSecurityAuditEvents"
+    enabled  = true
+  }
+
+  depends_on = [azurerm_mssql_server.sqlsrv_credit_cards, azurerm_mssql_database.sqldb_credit_cards, azurerm_log_analytics_workspace.monitor]
+}
+
+resource "azurerm_mssql_database_extended_auditing_policy" "sqldb_auditing_policy" {
+  database_id            = "${azurerm_mssql_server.sqlsrv_credit_cards.id}/databases/master"
+  log_monitoring_enabled = true
+  depends_on             = [azurerm_mssql_database.sqldb_credit_cards]
+}
+
+resource "azurerm_mssql_server_extended_auditing_policy" "sqlsrv_auditing_policy" {
+  server_id              = azurerm_mssql_server.sqlsrv_credit_cards.id
+  log_monitoring_enabled = true
+  depends_on             = [azurerm_mssql_server.sqlsrv_credit_cards]
 }
