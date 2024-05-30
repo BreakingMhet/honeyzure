@@ -43,3 +43,17 @@ resource "azurerm_log_analytics_workspace" "monitor" {
   retention_in_days   = 30
   depends_on          = [azurerm_resource_group.rg_honey_test]
 }
+
+# Action Group (it specifies the receiver of the alert)
+
+resource "azurerm_monitor_action_group" "alert_email_action" {
+  name                = "EmailAction"
+  resource_group_name = azurerm_resource_group.rg_honey_test.name
+  short_name          = "admin-mail"
+  email_receiver {
+    name                    = "sendtoUser"
+    email_address           = var.destination_email
+    use_common_alert_schema = true
+  }
+  depends_on = [azurerm_resource_group.rg_honey_test, azurerm_log_analytics_workspace.monitor]
+}
