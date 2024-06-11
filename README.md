@@ -1,4 +1,5 @@
 # HoneyZure
+<img src="logo.png" width="300" />
 
 HoneyZure is a honeypot tool specifically designed for Azure environments, fully provisioned through Terraform. It leverages a Log Analytics Workspace to ingest logs from various Azure resources, generating alerts whenever the deceptive Azure resources are accessed.
 
